@@ -16,5 +16,8 @@
   },
   "homepage": "https://github.com/kgrayallday/tinyapp#readme",
   "keywords": [],
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
 }
