@@ -20,11 +20,20 @@ app.get("/", (req, res) => { // render /pages/index when root is visited
   res.render('/pages/index');
 });
 
+// Delete POST /urls/:shortUrl/delete
+app.post("/urls/:shortUrl/delete", (req, res) => {
+  const shortUrl = req.params.shortUrl;
+  console.log('short url passed after delete click', shortUrl);
+  delete urlDatabase[shortUrl];
+  res.redirect('/urls'); // on Delete("Destroy") redirects back to url index
+});
+
 app.get("/u/:shortURL", (req, res) => {              // takes the shortUrl link request
   const longURL = urlDatabase[req.params.shortURL];  // and links to the actual(longUrl) by referencing 
   res.redirect(longURL);                             // the urlDatabase variables based on the :shortUrl passed
 });
 
+// Add a url with POST 
 app.post("/urls", (req, res) => {
   console.log(req.body);                                // Log the POST request body to the console when visiting 8080/urls
   urlDatabase.res.params.shortURL = res.params.longURL; // insert new shortUrl : longUrl key-value pairs to our urlDatabase obj
