@@ -10,13 +10,26 @@
   <header>
     <%- include('partials/_header'); %>
   </header>
-  <div class="card text-center">
+  <div style="margin: 5%" class="card text-center">
       <div class="card-header"></div>
       <div class="card-body">
         <h5 class="card-title">TinyURL for: <%= longURL %></h5>
         <p class="card-text">Short URL: <a href="/u/<%= shortURL %>"><%= shortURL %></a></p>
       </div>
     <div class="card-footer text-muted"></div>
+  </div>
+  <div style="margin: 5%" class="addURL">
+    <form method="POST" action="/urls/<%= shortURL %>/">
+      <div class="form-group">
+        <label for="editUrl">EDIT</label>
+        <input type="text" class="form-control" name="longURL" placeholder="Enter New URL">
+        <small id="explination" class="form-text text-muted">Enter your existing url</small>
+      </div>
+      <div class="form-check">
+        <!-- <label class="form-check-label" for="exampleCheck1">Check me out</label> -->
+      </div>
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
   </div>
   <!-- Bootstrap JS -->
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>

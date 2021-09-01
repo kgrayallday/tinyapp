@@ -19,6 +19,7 @@
         <tr>
           <th scope="col">Short URL</th>
           <th scope="col">Long URL</th>
+          <th scope="col">Edit</th>
           <th scope="col">Destroy</th>
         </tr>
       </thead>
@@ -28,6 +29,7 @@
           <tr>
             <td><%= url %></td>
             <td><%= urls[url] %></td>
+            <td><button onclick="window.location.href='/urls/<%= url %>';"style="background-color: rgb(255, 255, 255); border-radius: 4px">edit</button></td>
             <td>
               <form method="POST" action="/urls/<%= url %>/delete">
                 <button style="background-color: rgb(209,77,77); border: none; border-radius: 4px;" type=submit>
@@ -41,7 +43,7 @@
         
       </tbody>
     </table>
-    <a href='#'>SHORTEN URL</a>
+    <a href='/urls/new'>Create New</a>
   </main>
   <!-- Bootstrap JS -->
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
