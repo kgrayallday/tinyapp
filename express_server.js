@@ -115,7 +115,9 @@ app.post('/logout', (req, res) => {
 
 // REGISTER GET Register page
 app.get('/register', (req, res) => {
-  // const templateVars = {'usermail': null}
+  if (req.cookies.user_id){
+    res.redirect('/urls');
+  }
   res.render('register');
 });
 
