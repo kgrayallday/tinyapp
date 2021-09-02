@@ -16,7 +16,7 @@ const emailExists = (email) => {
     console.log('fn: emailExists | key in users:', id);
     console.log('fn: emailExists | email in users:', users[id].email);
     if (email === users[id].email){
-      return true;
+      return id;
     }
   }
   return false;
@@ -35,8 +35,8 @@ const urlDatabase = {
 const users = { 
   "userRandomID": {
     id: "userRandomID", 
-    email: "kale@salad.ca", 
-    password: "purple-monkey-dinosaur"
+    email: "kale@salad.com", 
+    password: "purple"
   },
  "user2RandomID": {
     id: "user2RandomID", 
@@ -46,15 +46,8 @@ const users = {
 }
 
 
-
-// const users = {
-//   'k@m.g' : 'test'
-// }
-
-
 // MIDDLE WARE
 
-// TODO ADD COOKIE SESSION
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({extended: true}));
 
@@ -65,10 +58,7 @@ app.use(cookieParser());
 // app.use(cookieSession);
 
 
-
-
-
-// ROUTING --------------
+// - - - ROUTING - - - 
 
 // Root index
 app.get('/', (req, res) => {
@@ -77,18 +67,22 @@ app.get('/', (req, res) => {
   console.log('user object using cookies: >>> ', user);
   const templateVars = {
     urls: urlDatabase,
-    usermail: req.cookies['usermail'],
     user_id: req.cookies['user_id'],
     user: user
 
    };
   //  templateVars.user = users[req.cookies.usermail]; // pulled from lecture 
-  res.render('./pages/index', templateVars);
+  res.render('./index', templateVars);
 });
 
 //
 //   - - - LOGIN / LOGOUT - - -
 //
+
+app.get('/login', (req, res) => {
+  console.log('login get res.body', res.body)
+  res.render('login');
+});
 
 // Login POST
 app.post('/login', (req, res) => {
@@ -96,16 +90,16 @@ app.post('/login', (req, res) => {
   const emailLogin = req.body.email; // from lecture
   const passwordLogin = req.body.password;
   // const foundUser = getUserByEmail(userGiven); // from lecture
-  if (users[emaiLogin] && users[userGiven] === passwordGiven) {
-    res.cookie('user_id',userGiven);
-    res.redirect('/urls'); // TODO Profile does not exist
+  const idFromEmail = emailExists(emailLogin);
+  if (!emailExists(emailLogin)) {
+    res.status(403).send('User with that email does not exist');
   } else {
-    res.redirect("/");
+    if (emailLogin && users[idFromEmail].password === passwordLogin) {
+      res.cookie('user_id',idFromEmail);
+      res.redirect('/urls'); // TODO Profile does not exist
+    }
   }
-  // const foundUser = getUser(req.body.usermail); // from lecture
-  // if (foundUser) {
-  //   res.redirect('/?user_id=${foundUser.id');
-  // } else {
+  
 });
 
 // Logout POST
@@ -175,12 +169,14 @@ app.post('/urls/:shortURL', (req, res) => {
 
 // brings us to each urls specific page
 app.get('/urls/:shortURL', (req, res) => {
+  const reqCookie_id = req.cookies['user_id'];
+  const user = users[reqCookie_id];
   console.log('get urls/:shortURL  >>>', req.cookies['user_id']);
   const templateVars = { 
     shortURL: req.params.shortURL, 
     longURL: urlDatabase[req.params.shortURL],
-    usermail: req.cookies['usermail'],
-    user_id: req.cookies['user_id']
+    user_id: reqCookie_id,
+    user: user
   };
   console.log(req.params.longURL)
   res.render('urls_show', templateVars);
@@ -198,25 +194,28 @@ app.get('/urls', (req, res) => {
   const reqCookie_id = req.cookies['user_id'];
   const user = users[reqCookie_id];
   console.log(' THE USERSSS OBJECT >>> ', users);
-  console.log('THE USER OBJECT >>> ', user)
+  console.log('THE USER OBJECT >>> ', user);
   const templateVars = {
     urls: urlDatabase,
-    usermail: req.cookies['usermail'],
-    user_id: req.cookies['user_id'],
+    user_id: reqCookie_id,
     user: user
 
   };
-  
-   // if (userID) { templateVars = { user: userID };};
-  res.render('urls_index', templateVars);    // render urls_index with templateVars data/variables
+  res.render('urls_index', templateVars);
 });
 
 // Create new tiny URLs
 app.get('/urls/new', (req, res) => {
-  const templateVars = { urls: urlDatabase };
-  // if (genUser_id) { templateVars = { user: user_id };};
-  res.render('urls_new', templateVars);           // urls_new really only contains an include of partial header
-});                                 // so no need for templateVars
+  const reqCookie_id = req.cookies['user_id'];
+  const user = users[reqCookie_id]; 
+  const templateVars = { 
+    urls: urlDatabase,
+    user_id: reqCookie_id,
+    user: user
+
+  };
+  res.render('urls_new', templateVars);
+});
 
 
 
