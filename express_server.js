@@ -181,6 +181,9 @@ app.get('/urls/:shortURL', (req, res) => {
     user: user
   };
   console.log(req.params.longURL)
+  if(!req.cookies['user_id']) {
+    res.redirect('/login');
+  }
   res.render('urls_show', templateVars);
 });
 
@@ -203,6 +206,9 @@ app.get('/urls', (req, res) => {
     user: user
 
   };
+  if (!req.cookies['user_id']){
+    res.redirect('/login');
+  }
   res.render('urls_index', templateVars);
 });
 
@@ -210,13 +216,20 @@ app.get('/urls', (req, res) => {
 app.get('/urls/new', (req, res) => {
   const reqCookie_id = req.cookies['user_id'];
   const user = users[reqCookie_id]; 
+  
   const templateVars = { 
     urls: urlDatabase,
     user_id: reqCookie_id,
     user: user
 
   };
+
+  if(!req.cookies['user_id']){
+    res.redirect('/login');
+  } 
+  
   res.render('urls_new', templateVars);
+
 });
 
 
