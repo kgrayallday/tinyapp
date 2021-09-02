@@ -13,8 +13,7 @@ app.set('view engine', 'ejs');
 
 const emailExists = (email) => {
   for (let id in users) {
-    console.log('fn: emailExists | key in users:', id);
-    console.log('fn: emailExists | email in users:', users[id].email);
+    console.log('✉️ >> emailExists << looping id: ', id, 'users[id]=', users[id], 'users[id].email=', users[id].email);
     if (email === users[id].email){
       return id;
     }
@@ -22,30 +21,45 @@ const emailExists = (email) => {
   return false;
 }
 
+const urlExists = (short_url) => {
+  for (let url in urlDatabase){
+    if (url === short_url) {
+      return true;
+    }  
+  }
+  return false;
+}
+
+// const userOnlyURLs = 
+
 function generateRandomString(length = 6) {
   return Math.random().toString(16).substr(2, length);
 }
 
 const urlDatabase = {
   b6UTxQ: {
-      longURL: "https://www.tsn.ca",
-      userID: "aJ48lW"
+      longURL: "http://orteil.dashnet.org/cookieclicker/",
+      userID: "123456"
   },
   i3BoGr: {
       longURL: "https://www.google.ca",
       userID: "aJ48lW"
-  }
+  },
+  l2XoRs: {
+    longURL: "https://certbot.eff.org",
+    userID: "123456"
+}
 };
 
 // PROVIDED BY COMPASS
 const users = { 
-  "userRandomID": {
-    id: "userRandomID", 
+  "123456": {
+    id: "123456", 
     email: "kale@salad.com", 
     password: "purple"
   },
- "user2RandomID": {
-    id: "user2RandomID", 
+ "789012": {
+    id: "789012", 
     email: "user2@example.com", 
     password: "dishwasher-funk"
   }
@@ -133,18 +147,20 @@ app.post('/register', (req, res) => {
   const newUserEmail = req.body.email;
   const newPassword = req.body.password;
   
-  if (newUserEmail !== '' || newPassword !== '') {
-    if (!emailExists(newUserEmail)) {
+  if (newUserEmail === '') {
+    res.status(400).send('email already in use');
+  }
+  if (newPassword === '') {
+    res.status(400).send('you have to enter a password.');
+  }
+  if (!emailExists(newUserEmail)) {
     const genUser_id = generateRandomString(6);
     users[genUser_id] = {id: genUser_id, email: newUserEmail, password: newPassword};
-    console.log('🔥 Registers new users object: >>>', users);
+    console.log('🔥 Registering new user');
     res.cookie('user_id', genUser_id);
-    res.redirect('/urls');
-    } else {
-    res.status(400).send('email already in use');
-    res.status(400);
-    }
+    
   }
+  res.redirect('/urls');
 
 });
 
@@ -155,8 +171,19 @@ app.post('/register', (req, res) => {
 
 // Delete POST /urls/:shortURL/delete --- on press of delete button
 app.post('/urls/:shortURL/delete', (req, res) => {
+  const reqCookie_id = req.cookies.user_id;
   const shortURL = req.params.shortURL;
-  console.log('short url passed after delete click', shortURL);
+  
+  if (!req.cookies.user_id){
+    // you have to be logged in dude. 
+    res.status(403).send('You have to be logged in, friendo.');
+    return
+  }
+  if (reqCookie_id !== urlDatabase[short].userID) {
+    res.status(403).send('You do not have the permissions for that')
+    return
+  }
+    
   delete urlDatabase[shortURL];
   res.redirect('/urls'); // on Delete("Destroy") redirects back to url index
 });
@@ -174,6 +201,7 @@ app.post('/urls/:shortURL', (req, res) => {
   urlDatabase[shortURL].longURL = longURL;
   res.redirect('/urls');
 });
+
 
 app.get('/urls/new', (req, res) => {
   console.log('urls new body >>> ', req.body);
@@ -196,7 +224,6 @@ app.get('/urls/new', (req, res) => {
 });
 
 
-
 // Add a new url with POST 
 app.post('/urls', (req, res) => {
   console.log(req.body);
@@ -208,18 +235,29 @@ app.post('/urls', (req, res) => {
 
 app.get('/urls', (req, res) => {
   const reqCookie_id = req.cookies['user_id'];
+  console.log('req cookie >>> ', req.cookies.user_id);
   const user = users[reqCookie_id];
-  console.log(' THE USERSSS OBJECT >>> ', users);
-  console.log('THE USER OBJECT >>> ', user);
-  const templateVars = {
-    urls: urlDatabase,
-    user_id: reqCookie_id,
-    user: user
-
-  };
+  console.log('user using users[reqCookie_id] >>> ', user);
+  const userURLs = {};
+  // console.log(' THE USERS OBJECT >>> ', users);
+  // console.log('THE USER OBJECT >>> ', user);
+  
   if (!req.cookies['user_id']){
     res.redirect('/login');
   }
+  for (let url in urlDatabase){ //make this into an outside function
+    if (urlDatabase[url].userID === reqCookie_id){
+      userURLs[url] = urlDatabase[url];
+      console.log('for-if userURLs url obj >>>', userURLs);
+    }
+    console.log('USERS URLS OBJ >>> ', userURLs);
+    // templateVars = {urls: usersURLs};
+  }
+  const templateVars = {
+    urls: userURLs,
+    user_id: reqCookie_id,
+    user: user
+  };
   res.render('urls_index', templateVars);
 });
 
@@ -230,21 +268,34 @@ app.get('/urls/:shortURL', (req, res) => {
   const user = users[reqCookie_id];
   const short = req.params.shortURL;
   console.log('PARAMS FOR SHORT: >>>', req.params.shortURL);
+  const userOwnedURLs = {};
+  
+  if(!req.cookies['user_id']) { // if not logged in
+    // res.redirect('/login');
+    res.status(403).send('I don\'t think that belongs to you...');
+  }
+
+  if(!urlExists(short)) { // if url doesnt exist
+  res.status(404).send('There aint seem to be such a place...');
+  }
+
+  // check for ownership and only supply urls that belong to user 
+
+  for( let url in urlDatabase) {
+    if(urlDatabase[url].userID === reqCookie_id){
+      userOwnedURLs[url] = urlDatabase[url];
+    }
+  }
+
   const templateVars = { 
     shortURL: req.params.shortURL, 
     longURL: urlDatabase[short].longURL,
     user_id: reqCookie_id,
-    user: user
+    user: userOwnedURLs
   };
-  console.log(req.params.longURL)
-  if(!req.cookies['user_id']) {
-    res.redirect('/login');
-  }
+
   res.render('urls_show', templateVars);
 });
-
-
-
 
 
 app.listen(PORT, () => {
