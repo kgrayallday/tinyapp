@@ -11,6 +11,10 @@ app.set('view engine', 'ejs');
 //   }
 // }
 
+const bcrypt = require('bcrypt');
+// const password = "purple-monkey-dinosaur";
+// const hashedPassword = bcrypt.hashSync(password, 10);
+
 const emailExists = (email) => {
   for (let id in users) {
     console.log('✉️ >> emailExists << looping id: ', id, 'users[id]=', users[id], 'users[id].email=', users[id].email);
@@ -107,19 +111,18 @@ app.get('/login', (req, res) => {
 // Login POST
 app.post('/login', (req, res) => {
   console.log('login post req.body', req.body);
-  const emailLogin = req.body.email; // from lecture
+  const emailLogin = req.body.email;
   const passwordLogin = req.body.password;
-  // const foundUser = getUserByEmail(userGiven); // from lecture
   const idFromEmail = emailExists(emailLogin);
+  
   if (!emailExists(emailLogin)) {
     res.status(403).send('User with that email does not exist');
-  } else {
-    if (emailLogin && users[idFromEmail].password === passwordLogin) {
-      res.cookie('user_id',idFromEmail);
-      res.redirect('/urls'); // TODO Profile does not exist
-    }
+  } 
+  // if (emailLogin && users[idFromEmail].password === passwordLogin) {
+  if (emailLogin && bcrypt.compareSync(passwordLogin, users[idFromEmail].password)) {
+    res.cookie('user_id',idFromEmail);
   }
-  
+  res.redirect('/urls'); // TODO Profile does not exist
 });
 
 // Logout POST
@@ -146,6 +149,7 @@ app.post('/register', (req, res) => {
   console.log('register req body: >>>', req.body);
   const newUserEmail = req.body.email;
   const newPassword = req.body.password;
+  const hashedPassword = bcrypt.hashSync(newPassword, 10)
   
   if (newUserEmail === '') {
     res.status(400).send('email already in use');
@@ -155,7 +159,7 @@ app.post('/register', (req, res) => {
   }
   if (!emailExists(newUserEmail)) {
     const genUser_id = generateRandomString(6);
-    users[genUser_id] = {id: genUser_id, email: newUserEmail, password: newPassword};
+    users[genUser_id] = {id: genUser_id, email: newUserEmail, password: hashedPassword};
     console.log('🔥 Registering new user');
     res.cookie('user_id', genUser_id);
     
@@ -166,7 +170,7 @@ app.post('/register', (req, res) => {
 
 
 //
-//  - - - CRUD - - - 
+//  - - - CRUD / OTHER - - - 
 //
 
 // Delete POST /urls/:shortURL/delete --- on press of delete button
@@ -233,14 +237,13 @@ app.post('/urls', (req, res) => {
   res.redirect(`/urls/${randId}`);                    // redirect to specific shortURL key site
 });
 
+// GET urls page
 app.get('/urls', (req, res) => {
   const reqCookie_id = req.cookies['user_id'];
   console.log('req cookie >>> ', req.cookies.user_id);
   const user = users[reqCookie_id];
   console.log('user using users[reqCookie_id] >>> ', user);
   const userURLs = {};
-  // console.log(' THE USERS OBJECT >>> ', users);
-  // console.log('THE USER OBJECT >>> ', user);
   
   if (!req.cookies['user_id']){
     res.redirect('/login');
@@ -275,11 +278,9 @@ app.get('/urls/:shortURL', (req, res) => {
     res.status(403).send('I don\'t think that belongs to you...');
   }
 
-  if(!urlExists(short)) { // if url doesnt exist
-  res.status(404).send('There aint seem to be such a place...');
+  if(!urlExists(short)) { // if url doesn't exist
+  res.status(404).send('There ain\'t seem to be such a place...');
   }
-
-  // check for ownership and only supply urls that belong to user 
 
   for( let url in urlDatabase) {
     if(urlDatabase[url].userID === reqCookie_id){
@@ -293,7 +294,6 @@ app.get('/urls/:shortURL', (req, res) => {
     user_id: reqCookie_id,
     user: userOwnedURLs
   };
-
   res.render('urls_show', templateVars);
 });
 
