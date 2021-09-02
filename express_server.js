@@ -14,6 +14,7 @@ app.set('view engine', 'ejs');
 const emailExists = (email) => {
   for (let id in users) {
     console.log('fn: emailExists | key in users:', id);
+    console.log('fn: emailExists | email in users:', users[id].email);
     if (email === users[id].email){
       return true;
     }
@@ -44,6 +45,8 @@ const users = {
   }
 }
 
+
+
 // const users = {
 //   'k@m.g' : 'test'
 // }
@@ -70,11 +73,14 @@ app.use(cookieParser());
 // Root index
 app.get('/', (req, res) => {
   console.log('Cookies: ', req.cookies);
-  console.log('req.query->', req.query);
+  const user = users[req.cookies.user_id];
+  console.log('user object using cookies: >>> ', user);
   const templateVars = {
     urls: urlDatabase,
     usermail: req.cookies['usermail'],
-    user_id: req.cookies['user_id']
+    user_id: req.cookies['user_id'],
+    user: user
+
    };
   //  templateVars.user = users[req.cookies.usermail]; // pulled from lecture 
   res.render('./pages/index', templateVars);
@@ -122,18 +128,20 @@ app.get('/register', (req, res) => {
 // REGISTER POST This should add new user object to the global user object
 app.post('/register', (req, res) => {
   console.log('register req body: >>>', req.body);
-  const newUsermail = req.body.email;
+  const newUserEmail = req.body.email;
   const newPassword = req.body.password;
   
-  if (newUsermail !== '' || newPassword !== '') {
-    if (!emailExists(newUsermail)) {
+  if (newUserEmail !== '' || newPassword !== '') {
+    if (!emailExists(newUserEmail)) {
     const genUser_id = generateRandomString(6);
-    users[genUser_id] = {id: genUser_id, email: newUsermail, password: newPassword};
+    users[genUser_id] = {id: genUser_id, email: newUserEmail, password: newPassword};
     console.log('🔥 Registers new users object: >>>', users);
     res.cookie('user_id', genUser_id);
     res.redirect('/urls');
+    } else {
+    res.status(400).send('email already in use');
+    res.status(400);
     }
-    res.statusCode(400);
   }
 
 });
@@ -187,12 +195,18 @@ app.post('/urls', (req, res) => {
 });
 
 app.get('/urls', (req, res) => {
+  const reqCookie_id = req.cookies['user_id'];
+  const user = users[reqCookie_id];
+  console.log(' THE USERSSS OBJECT >>> ', users);
+  console.log('THE USER OBJECT >>> ', user)
   const templateVars = {
     urls: urlDatabase,
     usermail: req.cookies['usermail'],
-    user_id: req.cookies['user_id']
+    user_id: req.cookies['user_id'],
+    user: user
 
-   };
+  };
+  
    // if (userID) { templateVars = { user: userID };};
   res.render('urls_index', templateVars);    // render urls_index with templateVars data/variables
 });
