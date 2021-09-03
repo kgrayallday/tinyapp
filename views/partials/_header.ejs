@@ -12,10 +12,12 @@
     </div>
     
     <% if(locals.user_id) {%>
+      
       <form method="POST" action="/logout">
-        <p>Logged in as: <%= user.email %> </p>
-        <button class="btn btn-secondary" type="submit">Logout</button>
+        Logged in as: <b><%= user.email %></b>
+        <button class="btn btn-secondary" type="submit">Logout</button></span>
       </form>
+    
       <% } else { %>
         <button onclick="window.location.href='/login'" class="btn btn-primary" type="submit">Login</button>
         <div style="width: 10px;"></div>

@@ -65,9 +65,7 @@ app.use(cookieSession({
 
 // Root index
 app.get('/', (req, res) => {
-  console.log('Cookies: ', req.session);
   const user = users[req.session.user_id];
-  console.log('user object using session: >>> ', user);
   const templateVars = {
     urls: urlDatabase,
     user_id: req.session.user_id,
@@ -129,7 +127,7 @@ app.post('/register', (req, res) => {
   const hashedPassword = bcrypt.hashSync(newPassword, 10)
   
   if (newUserEmail === '') {
-    res.status(400).send('email already in use');
+    res.status(400).send('that email is already in use');
   }
   if (newPassword === '') {
     res.status(400).send('you have to enter a password.');
@@ -137,7 +135,6 @@ app.post('/register', (req, res) => {
   if (!helper.getUserByEmail(newUserEmail, users)) {
     const genUser_id = generateRandomString(6);
     users[genUser_id] = {id: genUser_id, email: newUserEmail, password: hashedPassword};
-    console.log('🔥 Registering new user');
     req.session.user_id = genUser_id;
   }
   res.redirect('/urls');
@@ -197,30 +194,24 @@ app.get('/urls/new', (req, res) => {
 
 // Add a new url with POST 
 app.post('/urls', (req, res) => {
-  console.log(req.body);
-  console.log('cookies >>> ', req.session);
   const randId = generateRandomString();
   urlDatabase[randId] = { longURL: req.body.longURL, userID: req.session.user_id};
-  res.redirect(`/urls/${randId}`);                    // redirect to specific shortURL key site
+  res.redirect(`/urls/${randId}`);
 });
 
 // GET urls page
 app.get('/urls', (req, res) => {
   const reqCookie_id = req.session.user_id;
-  console.log('req cookie >>> ', req.session.user_id);
   const user = users[reqCookie_id];
-  console.log('user using users[reqCookie_id] >>> ', user);
   const userURLs = {};
   
   if (!req.session.user_id) {
     res.redirect('/login');
   }
-  for (let url in urlDatabase) { //make this into an outside function
+  for (let url in urlDatabase) {
     if (urlDatabase[url].userID === reqCookie_id) {
       userURLs[url] = urlDatabase[url];
-      console.log('for-if userURLs url obj >>>', userURLs);
     }
-    console.log('USERS URLS OBJ >>> ', userURLs);
   }
   const templateVars = {
     urls: userURLs,
@@ -231,20 +222,17 @@ app.get('/urls', (req, res) => {
 });
 
 app.get('/urls/:shortURL', (req, res) => {
-  console.log('urls :short req params >>> ', req.params);
   const reqCookie_id = req.session.user_id;
   const user = users[reqCookie_id];
   const short = req.params.shortURL;
-  console.log('PARAMS FOR SHORT: >>>', req.params.shortURL);
   const userOwnedURLs = {};
   
-  if(!req.session.user_id) { // if not logged in
-    // res.redirect('/login');
-    res.status(403).send('I don\'t think that belongs to you...');
+  if(!req.session.user_id) {
+    res.status(403).send('I don\'t think that belongs to you. (You need to be logged in)');
   }
 
-  if(!urlExists(short)) { // if url doesn't exist
-  res.status(404).send('There ain\'t seem to be such a place...');
+  if(!urlExists(short)) {
+  res.status(404).send('There ain\'t seem to be such a place. (URL does not exist)');
   }
 
   for(let url in urlDatabase) {
