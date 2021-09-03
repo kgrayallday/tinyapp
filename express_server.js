@@ -45,6 +45,7 @@ const users = {
 //
 // - - - MIDDLE WARE - - -
 //
+
 app.use(bodyParser.urlencoded({extended: true}));
 
 app.use(cookieSession({
@@ -53,7 +54,7 @@ app.use(cookieSession({
 }));
 
 //
-// - - - ROUTING - - - 
+// - - - ROOT URL - - - 
 //
 
 // Root index
@@ -134,7 +135,7 @@ app.post('/register', (req, res) => {
 });
 
 //
-//  - - - CRUD / OTHER - - - 
+//  - - - CRUD / ROUTING - - - 
 //
 
 // Delete POST /urls/:shortURL/delete --- on press of delete button
@@ -192,7 +193,6 @@ app.post('/urls', (req, res) => {
   res.redirect(`/urls/${randId}`);
 });
 
-// GET urls page
 app.get('/urls', (req, res) => {
   const reqCookieID = req.session.user_id;
   const user = users[reqCookieID];
