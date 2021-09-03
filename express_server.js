@@ -2,6 +2,7 @@ const express = require('express');
 var cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
 const bodyParser = require('body-parser');
+const helper = require('./helper');
 const app = express();
 const PORT = 8080;
 
@@ -115,14 +116,14 @@ app.post('/login', (req, res) => {
   console.log('login post req.body', req.body);
   const emailLogin = req.body.email;
   const passwordLogin = req.body.password;
-  const idFromEmail = emailExists(emailLogin);
+  const user = helper.getUserByEmail(emailLogin, users);
   
-  if (!emailExists(emailLogin)) {
+  if (!helper.getUserByEmail(emailLogin, users)) {
     res.status(403).send('User with that email does not exist');
   } 
   // if (emailLogin && users[idFromEmail].password === passwordLogin) {
-  if (emailLogin && bcrypt.compareSync(passwordLogin, users[idFromEmail].password)) {
-    req.session.user_id = idFromEmail;
+  if (emailLogin && bcrypt.compareSync(passwordLogin, user.password)) {
+    req.session.user_id = user.id;
   }
   res.redirect('/urls'); // TODO Profile does not exist
 });
@@ -159,7 +160,7 @@ app.post('/register', (req, res) => {
   if (newPassword === '') {
     res.status(400).send('you have to enter a password.');
   }
-  if (!emailExists(newUserEmail)) {
+  if (!helper.getUserByEmail(newUserEmail, users)) {
     const genUser_id = generateRandomString(6);
     users[genUser_id] = {id: genUser_id, email: newUserEmail, password: hashedPassword};
     console.log('🔥 Registering new user');
