@@ -8,4 +8,13 @@ const getUserByEmail = (email, database) => {
   return false;
 }
 
-module.exports = { getUserByEmail };
+const urlExists = (shortURL, database) => {
+  for (let url in database) {
+    if (url === shortURL) {
+      return true;
+    }  
+  }
+  return false;
+};
+
+module.exports = { getUserByEmail, urlExists };
