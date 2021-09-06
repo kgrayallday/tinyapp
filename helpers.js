@@ -17,4 +17,22 @@ const urlExists = (shortURL, database) => {
   return false;
 };
 
-module.exports = { getUserByEmail, urlExists };
+const isUserLoggedIn = (req, users) => {
+  if (users[req.session.user_id] === undefined) {
+    return false;
+  }
+  return true;
+}
+
+const generateRandomString = (length = 6) => {
+  return Math.random().toString(16).substr(2, length);
+}
+
+// const user = users[req.session.user_id];
+// const templateVars = {
+//   urls: urlDatabase,
+//   userID: req.session.user_id,
+//   user: user
+// };
+
+module.exports = { getUserByEmail, urlExists, isUserLoggedIn, generateRandomString };
