@@ -2,7 +2,7 @@ const express = require('express');
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
 const bodyParser = require('body-parser');
-const { urlExists, getUserByEmail, isUserLoggedIn, generateRandomString } = require('./helpers');
+const { urlExists, getUserByEmail, isUserLoggedIn, generateRandomString, renderError } = require('./helpers');
 const PORT = 8080;
 const app = express();
 
@@ -11,7 +11,7 @@ const app = express();
 // 403 Forbidden
 
 // - - - Middle Ware - - -
-
+app.use(express.static( "public" )); // allows displaying error image
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieSession({
@@ -90,7 +90,8 @@ app.post('/login', (req, res) => {
   const user = getUserByEmail(emailLogin, users);
   
   if (!getUserByEmail(emailLogin, users)) {
-    return res.status(403).send('A user with that email does not exist');
+    const custMsg = 'A user with that email does not exist';
+    return renderError(403, custMsg, res);
   }
 
   if (emailLogin && bcrypt.compareSync(passwordLogin, user.password)) {
@@ -98,8 +99,8 @@ app.post('/login', (req, res) => {
     req.session.user_id = user.id;
     return res.redirect('/urls');
   }
-
-  return res.status(403).send('Something went wrong'); // TODO Profile does not exist ⚠️
+  const custMsg = 'You may have entered the wrong user name or password';
+  return renderError(403, custMsg, res);
 });
 
 // Logout POST
@@ -128,10 +129,12 @@ app.post('/register', (req, res) => {
   const hashedPassword = bcrypt.hashSync(newPassword, 10);
   
   if (newUserEmail === '') {
-    return res.status(400).send('that email is already in use');
+    const custMsg = 'that email is already in use';
+    return renderError(400, res);
   }
   if (newPassword === '') {
-    return res.status(400).send('you have to enter a password.');
+    const custMsg = 'you have to enter a password';
+    return renderError(400, res);
   }
   if (!getUserByEmail(newUserEmail, users)) {
     const genUserID = generateRandomString(6);
@@ -151,10 +154,12 @@ app.post('/urls/:shortURL/delete', (req, res) => {
   const shortURL = req.params.shortURL;
   
   if (!req.session.user_id) {
-    return res.status(403).send('You have to be logged in.');
+    const custMsg = 'You must be signed in.';
+    return renderError(403, custMsg, res);
   }
   if (reqCookieID !== urlDatabase[shortURL].userID) {
-    return res.status(403).send('You do not have the permissions for that');
+    const custMsg = 'you cannot delete this url. if it belongs to you please login and try again.'
+    return renderError(403, custMsg, res);
   }
     
   delete urlDatabase[shortURL];
@@ -163,7 +168,8 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 
 app.get('/u/:shortURL', (req, res) => {
   if (!urlDatabase[req.params.shortURL]) {
-    return res.status(403).send('Website Not Found');
+    const custMsg = 'website not found'
+    return renderError(404, custMsg, res);
   }
   const convertedURL = urlDatabase[req.params.shortURL].longURL
   // const longURL = urlDatabase[req.params.shortURL].longURL;
@@ -175,11 +181,13 @@ app.post('/urls/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
 
   if (!isUserLoggedIn(req, users)) {
-    return res.status(403).send('You are not logged in');
+    const custMsg = 'You are not logged in...';
+    return renderError(403, custMsg, res);
   }
 
   if (req.session.user_id !== urlDatabase[shortURL].userID) {
-    return res.status(403).send('Insufficient Permissions: you must be the creator of this url to edit it.');
+    const custMsg = 'Insufficient Permissions: you must be the creator of this url to edit it.';
+    return renderError(403, custMsg, res);
   }
   urlDatabase[shortURL].longURL = longURL;
   return res.redirect('/urls');
@@ -241,15 +249,18 @@ app.get('/urls/:shortURL', (req, res) => {
   const user = users[req.session.user_id];
   
   if (!isUserLoggedIn(req, users)) {
-    return res.status(403).send('You are not logged in');
+    const custMsg = 'You are not logged in';
+    return renderError(403, custMsg, res);
   }
 
   if (req.session.user_id !== urlDatabase[short].userID) {
-    return res.status(403).send('Insufficient Permissions: you must be the creator of this url to edit it.');
+    const custMsg = 'Insufficient Permissions: you must be the creator of this url to edit it.'
+    return renderError(403, custMsg, res);
   }
 
   if (!urlExists(short, urlDatabase)) {
-    return res.status(404).send('URL does not exist)');
+    const custMsg = 'URL does not exist';
+    return renderError(404, custMsg, res);
   }
 
   for (let url in urlDatabase) {

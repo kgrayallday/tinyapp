@@ -35,4 +35,20 @@ const generateRandomString = (length = 6) => {
 //   user: user
 // };
 
-module.exports = { getUserByEmail, urlExists, isUserLoggedIn, generateRandomString };
+const renderError = (resCode, custMsg, res) => {
+  const errors = {
+    '400': '400 Bad Request',
+    '401': 'Unauthorized',
+    '403': '403 Forbidden',
+    '404': '404 Not Found'
+  }
+  const templateVars = {
+    resCode: resCode,
+    errors: errors[resCode],
+    custMsg: custMsg
+  };
+
+  res.render('error', templateVars);
+};
+
+module.exports = { getUserByEmail, urlExists, isUserLoggedIn, generateRandomString, renderError };
