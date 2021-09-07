@@ -28,17 +28,18 @@ const generateRandomString = (length = 6) => {
   return Math.random().toString(16).substr(2, length);
 }
 
-const renderError = (resCode, custMsg, res) => {
+const renderError = (resCode, customMsg, res) => {
   const errors = {
     '400': '400 Bad Request',
     '401': '401 Unauthorized',
     '403': '403 Forbidden',
     '404': '404 Not Found'
   }
+  
   const templateVars = {
     resCode: resCode,
     errors: errors[resCode],
-    custMsg: custMsg
+    customMsg: customMsg
   };
 
   res.render('error', templateVars);

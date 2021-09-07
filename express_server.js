@@ -3,15 +3,10 @@ const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
 const bodyParser = require('body-parser');
 const { urlExists, getUserByEmail, isUserLoggedIn, generateRandomString, renderError } = require('./helpers');
-const PORT = 8080;
 const app = express();
+const PORT = 8080;
 
-// 400 Bad Request
-// 401 Unauthorized
-// 403 Forbidden
-
-// - - - Middle Ware - - -
-app.use(express.static( "public" )); // allows displaying error image
+app.use(express.static('public')); // allows displaying error image
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieSession({
@@ -49,12 +44,8 @@ const users = {
 //   }
 };
 
-//
-// - - - ROOT URL - - -
-//
-
 // Root index
-app.get('/', (req, res) => { // check if user is logged in
+app.get('/', (req, res) => {
   if (!isUserLoggedIn(req, users)) {
     return res.redirect('/login');
   }
@@ -67,9 +58,7 @@ app.get('/', (req, res) => { // check if user is logged in
   return res.render('./urls', templateVars);
 });
 
-//
 //   - - - LOGIN / LOGOUT - - -
-//
 
 app.get('/login', (req, res) => {
   if (isUserLoggedIn(req, users)) {
@@ -78,7 +67,6 @@ app.get('/login', (req, res) => {
   return res.render('login');
 });
 
-// Login POST
 app.post('/login', (req, res) => {
   
   if (isUserLoggedIn(req, users)) {
@@ -90,31 +78,27 @@ app.post('/login', (req, res) => {
   const user = getUserByEmail(emailLogin, users);
   
   if (!getUserByEmail(emailLogin, users)) {
-    const custMsg = 'A user with that email does not exist';
-    return renderError(403, custMsg, res);
+    const customMsg = 'A user with that email does not exist';
+    return renderError(403, customMsg, res);
   }
 
   if (emailLogin && bcrypt.compareSync(passwordLogin, user.password)) {
-    // Successful Login
     req.session.user_id = user.id;
     return res.redirect('/urls');
   }
-  const custMsg = 'You may have entered the wrong user name or password';
-  return renderError(403, custMsg, res);
+
+  const customMsg = 'You may have entered the wrong user name or password';
+  return renderError(403, customMsg, res);
 });
 
-// Logout POST
 app.post('/logout', (req, res) => {
   req.session = null;
   return res.redirect('/urls');
 });
 
 
-//
 //  - - - REGISTRATION - - -
-//
 
-// REGISTER GET Register page
 app.get('/register', (req, res) => {
   if (isUserLoggedIn(req, users)) {
     return res.redirect('/urls');
@@ -122,19 +106,18 @@ app.get('/register', (req, res) => {
   return res.render('register');
 });
 
-// REGISTER POST This should add new user object to the global user object
 app.post('/register', (req, res) => {
   const newUserEmail = req.body.email;
   const newPassword = req.body.password;
   const hashedPassword = bcrypt.hashSync(newPassword, 10);
   
   if (newUserEmail === '') {
-    const custMsg = 'that email is already in use';
-    return renderError(400, res);
+    const customMsg = 'That email is already in use';
+    return renderError(400, customMsg, res);
   }
   if (newPassword === '') {
-    const custMsg = 'you have to enter a password';
-    return renderError(400, res);
+    const customMsg = 'You have to enter a password';
+    return renderError(400, customMsg, res);
   }
   if (!getUserByEmail(newUserEmail, users)) {
     const genUserID = generateRandomString(6);
@@ -144,22 +127,19 @@ app.post('/register', (req, res) => {
   return res.redirect('/urls');
 });
 
-//
 //  - - - CRUD / ROUTING - - -
-//
 
-// Delete POST /urls/:shortURL/delete --- on press of delete button
 app.post('/urls/:shortURL/delete', (req, res) => {
   const reqCookieID = req.session.user_id;
   const shortURL = req.params.shortURL;
   
   if (!req.session.user_id) {
-    const custMsg = 'You must be signed in.';
-    return renderError(403, custMsg, res);
+    const customMsg = 'You must be logged in.';
+    return renderError(403, customMsg, res);
   }
   if (reqCookieID !== urlDatabase[shortURL].userID) {
-    const custMsg = 'you cannot delete this url. if it belongs to you please login and try again.'
-    return renderError(403, custMsg, res);
+    const customMsg = 'You cannot delete this url. If it belongs to you please login and try again.';
+    return renderError(403, customMsg, res);
   }
     
   delete urlDatabase[shortURL];
@@ -168,12 +148,11 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 
 app.get('/u/:shortURL', (req, res) => {
   if (!urlDatabase[req.params.shortURL]) {
-    const custMsg = 'website not found'
-    return renderError(404, custMsg, res);
+    const customMsg = 'Website Not Found';
+    return renderError(404, customMsg, res);
   }
-  const convertedURL = urlDatabase[req.params.shortURL].longURL
-  // const longURL = urlDatabase[req.params.shortURL].longURL;
-  return res.redirect('http://'+ convertedURL);
+  const convertedURL = urlDatabase[req.params.shortURL].longURL;
+  return res.redirect('http://' + convertedURL);
 });
 
 app.post('/urls/:shortURL', (req, res) => {
@@ -181,13 +160,13 @@ app.post('/urls/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
 
   if (!isUserLoggedIn(req, users)) {
-    const custMsg = 'You are not logged in...';
-    return renderError(403, custMsg, res);
+    const customMsg = 'You are not logged in...';
+    return renderError(403, customMsg, res);
   }
 
   if (req.session.user_id !== urlDatabase[shortURL].userID) {
-    const custMsg = 'Insufficient Permissions: you must be the creator of this url to edit it.';
-    return renderError(403, custMsg, res);
+    const customMsg = 'Insufficient Permissions: you must be the creator of this url to edit it.';
+    return renderError(403, customMsg, res);
   }
   urlDatabase[shortURL].longURL = longURL;
   return res.redirect('/urls');
@@ -209,7 +188,6 @@ app.get('/urls/new', (req, res) => {
   return res.render('urls_new', templateVars);
 });
 
-// Add a new url with POST
 app.post('/urls', (req, res) => {
   const randId = generateRandomString(6);
   urlDatabase[randId] = { longURL: req.body.longURL, userID: req.session.user_id};
@@ -249,18 +227,18 @@ app.get('/urls/:shortURL', (req, res) => {
   const user = users[req.session.user_id];
   
   if (!isUserLoggedIn(req, users)) {
-    const custMsg = 'You are not logged in';
-    return renderError(403, custMsg, res);
+    const customMsg = 'You are not logged in';
+    return renderError(403, customMsg, res);
   }
 
   if (req.session.user_id !== urlDatabase[short].userID) {
-    const custMsg = 'Insufficient Permissions: you must be the creator of this url to edit it.'
-    return renderError(403, custMsg, res);
+    const customMsg = 'Insufficient Permissions: you must be the creator of this url to edit it.';
+    return renderError(403, customMsg, res);
   }
 
   if (!urlExists(short, urlDatabase)) {
-    const custMsg = 'URL does not exist';
-    return renderError(404, custMsg, res);
+    const customMsg = 'URL does not exist';
+    return renderError(404, customMsg, res);
   }
 
   for (let url in urlDatabase) {
@@ -276,6 +254,7 @@ app.get('/urls/:shortURL', (req, res) => {
     userURLs: userOwnedURLs,
     user: user
   };
+
   return res.render('urls_show', templateVars);
 });
 
