@@ -28,13 +28,6 @@ const generateRandomString = (length = 6) => {
   return Math.random().toString(16).substr(2, length);
 }
 
-// const user = users[req.session.user_id];
-// const templateVars = {
-//   urls: urlDatabase,
-//   userID: req.session.user_id,
-//   user: user
-// };
-
 const renderError = (resCode, custMsg, res) => {
   const errors = {
     '400': '400 Bad Request',
