@@ -2,7 +2,7 @@ const express = require('express');
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
 const bodyParser = require('body-parser');
-const { urlExists, getUserByEmail, isUserLoggedIn, generateRandomString, renderError } = require('./helpers');
+const { urlExists, getUserByEmail, isUserLoggedIn, generateRandomString, renderError, urlsForUser } = require('./helpers');
 const app = express();
 const PORT = 8080;
 
@@ -197,7 +197,6 @@ app.post('/urls', (req, res) => {
 app.get('/urls', (req, res) => {
   const reqCookieID = req.session.user_id;
   const user = users[reqCookieID];
-  const userURLs = {};
 
   if (!isUserLoggedIn(req, users)) {
     return res.redirect('/login');
@@ -207,11 +206,8 @@ app.get('/urls', (req, res) => {
     return res.redirect('/login');
   }
 
-  for (let url in urlDatabase) {
-    if (urlDatabase[url].userID === reqCookieID) {
-      userURLs[url] = urlDatabase[url];
-    }
-  }
+  const userURLs = urlsForUser(reqCookieID, urlDatabase);
+
   const templateVars = {
     urls: userURLs,
     userID: reqCookieID,
@@ -223,7 +219,6 @@ app.get('/urls', (req, res) => {
 app.get('/urls/:shortURL', (req, res) => {
   const reqCookieID = req.session.user_id;
   const short = req.params.shortURL;
-  const userOwnedURLs = {};
   const user = users[req.session.user_id];
   
   if (!isUserLoggedIn(req, users)) {
@@ -241,17 +236,13 @@ app.get('/urls/:shortURL', (req, res) => {
     return renderError(404, customMsg, res);
   }
 
-  for (let url in urlDatabase) {
-    if (urlDatabase[url].userID === reqCookieID) {
-      userOwnedURLs[url] = urlDatabase[url];
-    }
-  }
+  const userURLs = urlsForUser(reqCookieID, urlDatabase);
 
   const templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[short].longURL,
     userID: reqCookieID,
-    userURLs: userOwnedURLs,
+    userURLs: userURLs,
     user: user
   };
 

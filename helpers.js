@@ -45,4 +45,14 @@ const renderError = (resCode, customMsg, res) => {
   res.render('error', templateVars);
 };
 
-module.exports = { getUserByEmail, urlExists, isUserLoggedIn, generateRandomString, renderError };
+const urlsForUser = (sessionID, database) => {
+  const userOwnedURLs = {};
+  for (let url in database) {
+    if (database[url].userID === sessionID) {
+      userOwnedURLs[url] = database[url];
+    }
+  }
+  return userOwnedURLs;
+}
+
+module.exports = { getUserByEmail, urlExists, isUserLoggedIn, generateRandomString, renderError, urlsForUser };
