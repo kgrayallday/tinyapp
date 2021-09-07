@@ -38,7 +38,7 @@ const generateRandomString = (length = 6) => {
 const renderError = (resCode, custMsg, res) => {
   const errors = {
     '400': '400 Bad Request',
-    '401': 'Unauthorized',
+    '401': '401 Unauthorized',
     '403': '403 Forbidden',
     '404': '404 Not Found'
   }
