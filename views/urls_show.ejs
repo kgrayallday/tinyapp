@@ -26,7 +26,7 @@
         <form method="POST" action="/urls/<%= shortURL %>/">
           <div class="form-group">
             <label for="editUrl">EDIT</label>
-            <input type="text" class="form-control" name="longURL" placeholder="Enter New URL">
+            <input type="text" class="form-control" name="longURL" value="<%= longURL %>" placeholder="Enter New URL">
             <small id="explination" class="form-text text-muted">Edit new url above ☝️</small>
           </div>
             <button type="submit" class="btn btn-primary">Submit</button>
