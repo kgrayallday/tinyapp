@@ -55,7 +55,7 @@ app.get('/', (req, res) => {
     userID: req.session.user_id,
     user: user
   };
-  return res.render('./urls', templateVars);
+  return res.render('/urls', templateVars);
 });
 
 //   - - - LOGIN / LOGOUT - - -
@@ -152,7 +152,7 @@ app.get('/u/:shortURL', (req, res) => {
     return renderError(404, customMsg, res);
   }
   const convertedURL = urlDatabase[req.params.shortURL].longURL;
-  return res.redirect('http://' + convertedURL);
+  return res.redirect(convertedURL);
 });
 
 app.post('/urls/:shortURL', (req, res) => {
@@ -226,15 +226,17 @@ app.get('/urls/:shortURL', (req, res) => {
     return renderError(403, customMsg, res);
   }
 
+  if (!urlExists(short, urlDatabase)) {
+    const customMsg = 'URL does not exist';
+    return renderError(404, customMsg, res);
+  }
+
   if (req.session.user_id !== urlDatabase[short].userID) {
     const customMsg = 'Insufficient Permissions: you must be the creator of this url to edit it.';
     return renderError(403, customMsg, res);
   }
 
-  if (!urlExists(short, urlDatabase)) {
-    const customMsg = 'URL does not exist';
-    return renderError(404, customMsg, res);
-  }
+
 
   const userURLs = urlsForUser(reqCookieID, urlDatabase);
 
