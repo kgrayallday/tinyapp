@@ -2,7 +2,7 @@ const express = require('express');
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
 const bodyParser = require('body-parser');
-const { urlExists, getUserByEmail, isUserLoggedIn, generateRandomString, renderError, urlsForUser } = require('./helpers');
+const { urlExists, getUserByEmail, isUserLoggedIn, generateRandomString, renderError, urlsForUser, urlDatabase, users } = require('./helpers');
 const app = express();
 const PORT = 8080;
 
@@ -13,36 +13,6 @@ app.use(cookieSession({
   name: 'session',
   keys: ['key1','key2']
 }));
-
-const urlDatabase = {
-// TEST URLS
-//   b6UTxQ: {
-//     longURL: "http://orteil.dashnet.org/cookieclicker/",
-//     userID: "123456"
-//   },
-//   i3BoGr: {
-//     longURL: "https://www.google.ca",
-//     userID: "aJ48lW"
-//   },
-//   l2XoRs: {
-//     longURL: "https://certbot.eff.org",
-//     userID: "123456"
-// }
-};
-
-const users = {
-// TEST USERS
-//   "123456": {
-//     id: "123456",
-//     email: "kale@salad.com",
-//     password: "purple"
-//   },
-//  "789012": {
-//     id: "789012",
-//     email: "user2@example.com",
-//     password: "dishwasher-funk"
-//   }
-};
 
 // Root index
 app.get('/', (req, res) => {

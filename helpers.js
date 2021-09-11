@@ -55,4 +55,8 @@ const urlsForUser = (sessionID, database) => {
   return userOwnedURLs;
 };
 
-module.exports = { getUserByEmail, urlExists, isUserLoggedIn, generateRandomString, renderError, urlsForUser };
+const urlDatabase = {};
+
+const users = {};
+
+module.exports = { getUserByEmail, urlExists, isUserLoggedIn, generateRandomString, renderError, urlsForUser, urlDatabase, users };
