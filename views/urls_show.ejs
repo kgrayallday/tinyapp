@@ -19,18 +19,20 @@
       </div>
     <div class="card-footer text-muted"></div>
   </div>
-  <div style="margin: 5%" class="addURL">
-    <form method="POST" action="/urls/<%= shortURL %>/">
-      <div class="form-group">
-        <label for="editUrl">EDIT</label>
-        <input type="text" class="form-control" name="longURL" placeholder="Enter New URL">
-        <small id="explination" class="form-text text-muted">Enter your existing url</small>
+
+  <div style="margin: 5%" class="card text-center">
+    <div class="card-header"></div>
+      <div style="margin: 5%" class="addURL">
+        <form method="POST" action="/urls/<%= shortURL %>/">
+          <div class="form-group">
+            <label for="editUrl">EDIT</label>
+            <input type="text" class="form-control" name="longURL" placeholder="Enter New URL">
+            <small id="explination" class="form-text text-muted">Enter your existing url</small>
+          </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
       </div>
-      <div class="form-check">
-        <!-- <label class="form-check-label" for="exampleCheck1">Check me out</label> -->
-      </div>
-      <button type="submit" class="btn btn-primary">Submit</button>
-    </form>
+    <div class="card-footer text-muted"></div>
   </div>
 
   <footer>
