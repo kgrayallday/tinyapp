@@ -6,10 +6,11 @@ const { urlExists, getUserByEmail, isUserLoggedIn, generateRandomString, renderE
 const app = express();
 const PORT = 8080;
 
+// app is express and use & set are applying options and middleware
 app.use(express.static('public')); // allows displaying error image
-app.set('view engine', 'ejs');
-app.use(bodyParser.urlencoded({extended: true}));
-app.use(cookieSession({
+app.set('view engine', 'ejs'); // use embedded js
+app.use(bodyParser.urlencoded({extended: true})); // gives us use of req.body
+app.use(cookieSession({ // access cookie sessions with req.session.some-property
   name: 'session',
   keys: ['key1','key2']
 }));
@@ -19,7 +20,7 @@ app.get('/', (req, res) => {
   if (!isUserLoggedIn(req, users)) {
     return res.redirect('/login');
   }
-  const user = users[req.session.user_id];
+  const user = users[req.session.user_id]; // set variable for current user to id found in: session.user_id
   const templateVars = {
     urls: urlDatabase,
     userID: req.session.user_id,
@@ -53,7 +54,7 @@ app.post('/login', (req, res) => {
   }
 
   if (emailLogin && bcrypt.compareSync(passwordLogin, user.password)) {
-    req.session.user_id = user.id;
+    req.session.user_id = user.id; // sets session user_id to the property id in user object
     return res.redirect('/urls');
   }
 
